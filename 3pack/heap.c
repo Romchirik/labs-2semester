@@ -32,7 +32,7 @@ void heapifyDown(Heap *target, int start_index) {
         int right = 2 * start_index + 2;
         int tmp = left;
 
-        if (right < target->length && target->data_arr[right] < target->data_arr[right]) tmp = right;
+        if (right < target->length && (target->data_arr[right] < target->data_arr[left])) tmp = right;
         if (target->data_arr[start_index] <= target->data_arr[tmp]) break;
 
         swap(&target->data_arr[start_index], &target->data_arr[tmp]);
@@ -64,10 +64,11 @@ int main() {
     scanf("%d", &num_operations);
 
     Heap *heap = createHeap(num_operations);
+    heap->length = 0;
 
     for (int i = 0; i < num_operations; i++) {
-        char command[4];
-        scanf("%s", command);
+        char command[5];
+        scanf("%s ", command);
         switch (command[1]) {
             case 'u': {
                 int tmp;
