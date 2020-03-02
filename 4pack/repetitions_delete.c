@@ -1,43 +1,65 @@
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
 
-#define ARRAY_EL_SIZE 32
+#define TABLE_LEN 1000003
+#define MOD 1000003
 
-typedef unsigned int bitword;
+typedef struct Node_s {
+    unsigned int data;
+    struct Node_s *next;
+} Node;
 
+unsigned int hash(unsigned int source) {
+    return (unsigned int) source % MOD;
+}
 
-bitword *bitsetCreate() {
-    return calloc((UINT32_MAX / ARRAY_EL_SIZE) + 1, sizeof(bitword));
+void addNode(Node **hash_table_node, unsigned int data) {
+    Node *new_head = malloc(sizeof(Node));
+    new_head->next = *hash_table_node;
+    new_head->data = data;
+    *hash_table_node = new_head;
 }
 
 
-int bitsetGet(const bitword *arr, int idx) {
-    return (arr[idx / ARRAY_EL_SIZE] >> (ARRAY_EL_SIZE - 1 - (idx % ARRAY_EL_SIZE))) & 1;
+int checkNode(Node **hash_table, unsigned int data) {
+    unsigned int tmp_hash = hash(data);
+    Node *tmp_chain_start = hash_table[tmp_hash];
+    while (tmp_chain_start != NULL) {
+        if (tmp_chain_start->data == data) {
+            return 1;
+        }
+        tmp_chain_start = tmp_chain_start->next;
+    }
+    return 0;
 }
 
-void bitsetSet(bitword *arr, unsigned int idx, unsigned int newval) {
-    if (newval)
-        arr[idx / ARRAY_EL_SIZE] = arr[idx / ARRAY_EL_SIZE] | (1 << (ARRAY_EL_SIZE - 1 - idx));
-    else
-        arr[idx / ARRAY_EL_SIZE] = arr[idx / ARRAY_EL_SIZE] & ~(1 << (ARRAY_EL_SIZE - 1 - idx));
-}
 
 
-int main() {
-    FILE *input = fopen("input.bin", "r");
-    FILE *output = fopen("output.bin", "w");
+Node *hash_table[TABLE_LEN] = {NULL};
 
-    unsigned int length;
+int main(void) {
+    FILE *input = fopen("input.bin", "rb");
+    FILE *output = fopen("output.bin", "wb");
+
+    unsigned int length, counter = 0;
     fread(&length, sizeof(unsigned int), 1, input);
-    uint32_t *data = calloc(length, sizeof(unsigned int));
-    bitword *hash_table = bitsetCreate();
+    unsigned int *data = malloc(length * sizeof(unsigned int));
     fread(data, sizeof(unsigned int), length, input);
 
-    bitsetSet(hash_table, 1, 1);
+    fseek(output, 4, SEEK_CUR);
+    for (int i = 0; i < length; i++) {
+        if (checkNode(hash_table, data[i]) == 0) {
+            addNode(&hash_table[hash(data[i])], data[i]);
+            fwrite(&data[i], sizeof(unsigned int), 1, output);
+            counter++;
+        }
+    }
+    fseek(output, 0, SEEK_SET);
+    fwrite(&counter, sizeof(unsigned int), 1, output);
 
-
-
+    
     fclose(input);
     fclose(output);
 }
+
