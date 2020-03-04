@@ -1,59 +1,53 @@
-#include <inttypes.h>
-#include <stdio.h>
-#include <stdlib.h>
+#define SIZE 100000
 
-#define TABLE_LEN 1000003
-#define MOD 1000003
+#include<stdlib.h>
+#include<stdio.h>
+#include<inttypes.h>
 
-
-typedef struct Node_s {
-    uint32_t hash;
-    uint32_t data;
-    struct Node_s *next;
+typedef struct node_s {
+    uint32_t val;
+    uint32_t key;
+    struct node_s *next;
 } Node;
 
-
-void addNode(Node **hash_table_node, uint32_t data, uint32_t hash) {
-    Node *new_head = malloc(sizeof(Node));
-    new_head->next = *hash_table_node;
-    new_head->data = data;
-    new_head->hash = hash;
-    *hash_table_node = new_head;
-}
-
-
-Node *checkNode(Node *hash_table_node, uint32_t hash) {
-    Node *tmp_node = hash_table_node;
-    while (tmp_node != NULL) {
-        if (tmp_node->hash == hash) {
-            return tmp_node;
-        }
+uint32_t *check(Node *hash_table_node, uint32_t data) {
+    Node *p = hash_table_node;
+    while (p != NULL) {
+        if (p->key == data)
+            return &p->val;
+        p = p->next;
     }
     return NULL;
 }
 
+void add(Node **hash_tbale_node, uint32_t key, uint32_t value) {
+    Node *head = (Node *) malloc(sizeof(Node));
+    head->val = value;
+    head->key = key;
+    head->next = *hash_tbale_node;
+    *hash_tbale_node = head;
+}
 
-Node *hash_table[TABLE_LEN] = {NULL};
+Node *hash_table[SIZE] = {NULL};
 
-int main(void) {
+int main() {
     uint32_t number = 1, hash;
-    printf("eval %d\n", number);
+    printf("eval %u\n", number);
     fflush(stdout);
     scanf("%u", &hash);
-    addNode(&hash_table[hash % MOD], number, hash);
-    while (1){
+    add(&hash_table[hash % SIZE], hash, number);
+    while (1) {
         number++;
-        printf("eval %d\n", number);
+        printf("eval %u\n", number);
         fflush(stdout);
         scanf("%u", &hash);
-        Node *tmp_node = checkNode(hash_table[hash % MOD], hash);
-        if (tmp_node != NULL){
-            printf("answer %u %u\n", tmp_node->data, number);
+        uint32_t *collision_found = check(hash_table[hash % SIZE], hash);
+        if (collision_found != NULL) {
+            printf("answer %u %u\n", *collision_found, number);
             fflush(stdout);
             return 0;
         }
-        addNode(&hash_table[hash % MOD], number, hash);
+        add(&hash_table[hash % SIZE], hash, number);
     }
     return 0;
 }
-
